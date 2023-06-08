@@ -8,13 +8,14 @@ const ErrorHandler = require('../utils/errorHandler');
 exports.registerUser = catchAsyncError(
     async (req, res, next) => {
 
-        const { name, email, password } = req.body;
+        const { name, email, password, secretCode } = req.body;
 
         const user = await userModel.create(
             {
-                name, email, password
+                name, email, password, secretCode
             }
         );
+
         sendToken(user, 201, res);
     }
 )
@@ -28,7 +29,6 @@ exports.loginUser = catchAsyncError(
         if (!email || !password) {
             return next(new ErrorHandler("Please enter email and password", 400));
         }
-
 
         const user = await userModel.findOne({ email: email }).select("+password");
 
@@ -61,6 +61,29 @@ exports.logoutUser = catchAsyncError(async (req, res, next) => {
         message: "Logged Out"
     })
 })
+
+//deleteUser
+
+exports.deleteUser = catchAsyncError(async (req, res, next) => {
+
+    const { id } = req.params;
+    // console.log(id);
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+    }
+    else {
+        const deletedUser = await userModel.findByIdAndDelete(id);
+        res.status(200).json({
+            success: true,
+            message: "User Deleted"
+        })
+    }
+
+})
+
 
 //Get Single User
 
